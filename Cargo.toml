@@ -1,0 +1,24 @@
+[package]
+name = "tree-sitter-squirrel"
+description = "Squirrel grammar for tree-sitter"
+version = "0.0.1"
+authors = ["Amaan Quresh <amaanq12@gmail.com>"]
+license = "MIT"
+readme = "bindings/rust/README.md"
+keywords = ["incremental", "parsing", "squirrel"]
+categories = ["parsing", "text-editors"]
+repository = "https://github.com/amaanq/tree-sitter-squirrel"
+edition = "2021"
+autoexamples = false
+
+build = "bindings/rust/build.rs"
+include = ["bindings/rust/*", "grammar.js", "queries/*", "src/*"]
+
+[lib]
+path = "bindings/rust/lib.rs"
+
+[dependencies]
+tree-sitter = "~0.20.9"
+
+[build-dependencies]
+cc = "1.0"

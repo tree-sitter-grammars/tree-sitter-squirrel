@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -eu
+
+cd "$(dirname "$0")/.."
+
+function clone_repo {
+	owner=$1
+	name=$2
+	sha=$3
+
+	path=examples/$name
+	if [ ! -d "$path" ]; then
+		echo "Cloning $owner/$name"
+		git clone "https://github.com/$owner/$name" "$path"
+	fi
+
+	pushd "$path" >/dev/null
+	actual_sha=$(git rev-parse HEAD)
+	if [ "$actual_sha" != "$sha" ]; then
+		echo "Updating $owner/$name to $sha"
+		git fetch
+		git reset --hard "$sha"
+	fi
+	popd >/dev/null
+}
+
+clone_repo electricimp reference e2ad985ac7f297f0a4979ac6a938557df5865ebd
+clone_repo albertodemichelis squirrel 43370e97db82d1159327e7d4e11640887aaaab54
+
+known_failures="$(cat script/known_failures.txt)"
+
+# shellcheck disable=2046
+tree-sitter parse -q \
+	"examples/**/*.nut" \
+	$(for file in $known_failures; do echo "!${file}"; done)
+
+example_count=$(find examples -name "*.nut" | wc -l)
+failure_count=$(wc -w <<<"$known_failures")
+success_count=$((example_count - failure_count))
+success_percent=$(bc -l <<<"100*${success_count}/${example_count}")
+
+printf \
+	"Successfully parsed %d of %d example files (%.1f%%)\n" \
+	"$success_count" "$example_count" "$success_percent"
