@@ -1,5 +1,3 @@
-; VARGV @variable.builtin
-
 ; Keywords
 
 [
