@@ -1,7 +1,7 @@
 /**
  * @file Squirrel grammar for tree-sitter
  * @author Amaan Qureshi <amaanq12@gmail.com>
- * @license Apache-2.0
+ * @license MIT
  * @see {@link http://squirrel-lang.org|official website}
  * @see {@link https://github.com/albertodemichelis/squirrel|official repository}
  * @see {@link http://squirrel-lang.org/squirreldoc/reference/index.html|official spec}

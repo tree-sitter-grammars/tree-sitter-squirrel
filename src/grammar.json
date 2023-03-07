@@ -3734,6 +3734,26 @@
   "supertypes": [
     "expression",
     "primary_expression"
-  ]
+  ],
+  "PREC": {
+    "PAREN": -1,
+    "ASSIGN": 1,
+    "TERNARY": 2,
+    "LOGICAL_OR": 3,
+    "LOGICAL_AND": 4,
+    "IN": 4,
+    "INCLUSIVE_OR": 5,
+    "EXCLUSIVE_OR": 6,
+    "BITWISE_AND": 7,
+    "EQUALITY": 8,
+    "COMPARISON": 9,
+    "INSTANCEOF": 9,
+    "SHIFT": 10,
+    "ADDITIVE": 11,
+    "MULTIPLICATIVE": 12,
+    "UNARY": 13,
+    "CALL": 14,
+    "MEMBER": 15
+  }
 }
 
