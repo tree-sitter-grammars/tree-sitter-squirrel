@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/tree-sitter-grammars/tree-sitter-squirrel/compare/v1.0.0...v1.0.1) (2024-05-05)
+
+
+### Bug Fixes
+
+* **grammar:** adapt to upstream regex change ([f93fd28](https://github.com/tree-sitter-grammars/tree-sitter-squirrel/commit/f93fd2864dd05cc39b0490145fd86a1a93bfa3a3))
+
 ## 1.0.0 (2023-06-20)
 
 
