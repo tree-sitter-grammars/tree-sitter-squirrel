@@ -281,14 +281,11 @@ module.exports = grammar({
     member_declaration: $ => seq(
       optional($.attribute_declaration),
       choice(
-        seq(optional($.qualifier), $.identifier, '=', choice($.expression, $.table), optional(';')),
+        seq(optional('static'), $.identifier, '=', choice($.expression, $.table), optional(';')),
         seq('[', $.expression, ']', '=', $.expression, optional(';')),
         $.function_declaration,
         seq('constructor', '(', optional($.parameters), ')', $._statement),
       ),
-    ),
-    qualifier: _ => choice(
-      'static',
     ),
 
     try_statement: $ => seq(
