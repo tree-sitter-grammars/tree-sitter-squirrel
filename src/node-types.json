@@ -1850,10 +1850,6 @@
           "named": true
         },
         {
-          "type": "qualifier",
-          "named": true
-        },
-        {
           "type": "return",
           "named": true
         },
@@ -1936,11 +1932,6 @@
         }
       ]
     }
-  },
-  {
-    "type": "qualifier",
-    "named": true,
-    "fields": {}
   },
   {
     "type": "resume_expression",

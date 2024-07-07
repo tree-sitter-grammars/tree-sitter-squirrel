@@ -980,8 +980,8 @@
                   "type": "CHOICE",
                   "members": [
                     {
-                      "type": "SYMBOL",
-                      "name": "qualifier"
+                      "type": "STRING",
+                      "value": "static"
                     },
                     {
                       "type": "BLANK"
@@ -1098,15 +1098,6 @@
               ]
             }
           ]
-        }
-      ]
-    },
-    "qualifier": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "STRING",
-          "value": "static"
         }
       ]
     },
