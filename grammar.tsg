@@ -1,0 +1,493 @@
+// Squirrel grammar for tree-sitter (native DSL).
+// Translated from grammar.js.
+
+let PREC = {
+    PAREN: -1,
+    ASSIGN: 1,
+    TERNARY: 2,
+    LOGICAL_OR: 3,
+    LOGICAL_AND: 4,
+    IN: 4,
+    INCLUSIVE_OR: 5,
+    EXCLUSIVE_OR: 6,
+    BITWISE_AND: 7,
+    EQUALITY: 8,
+    COMPARISON: 9,
+    INSTANCEOF: 9,
+    SHIFT: 10,
+    ADDITIVE: 11,
+    MULTIPLICATIVE: 12,
+    UNARY: 13,
+    CALL: 14,
+    MEMBER: 15,
+}
+
+macro sep1(rule: rule_t, sep: rule_t) rule_t {
+    seq(rule, repeat(seq(sep, rule)))
+}
+
+macro comma_sep1(rule: rule_t) rule_t { sep1(rule, ",") }
+
+macro comma_sep(rule: rule_t) rule_t { optional(comma_sep1(rule)) }
+
+macro optional_comma_sep(rule: rule_t) rule_t { sep1(rule, optional(",")) }
+
+macro binop_l(p: int_t, op: rule_t) rule_t {
+    prec_left(p, seq(
+        field(left, expression),
+        field(operator, op),
+        field(right, expression),
+        optional(";"),
+    ))
+}
+
+grammar {
+    language: "squirrel",
+    externals: [verbatim_string],
+    extras: [comment, regexp(r"\s")],
+    inline: [expression_statement, _statements, _statement],
+    supertypes: [expression, primary_expression],
+    word: identifier,
+}
+
+rule script { optional(_statements) }
+
+rule _statements { repeat1(_statement) }
+
+rule _statement {
+    choice(
+        block,
+        if_statement, while_statement, do_while_statement,
+        switch_statement, for_statement, foreach_statement,
+        break, continue, return, yield,
+        local_declaration, var_statement,
+        function_declaration, class_declaration,
+        try_statement, throw_statement,
+        const_declaration, enum_declaration,
+        expression_statement,
+    )
+}
+
+rule expression_statement {
+    prec_right(0, choice(seq(expression, optional(";")), ";"))
+}
+
+rule block { seq("{", repeat(_statement), "}") }
+
+rule if_statement {
+    prec_right(1, seq(
+        "if",
+        field(condition, parenthesized_expression),
+        field(consequence, _statement),
+        optional(else_statement),
+    ))
+}
+
+rule else_statement {
+    prec_right(1, seq("else", field(alternative, _statement)))
+}
+
+rule while_statement {
+    prec_right(0, seq(
+        "while", "(", expression, ")", optional(_statement),
+    ))
+}
+
+rule do_while_statement {
+    prec_right(0, seq("do", _statement, "while", "(", expression, ")"))
+}
+
+rule switch_statement {
+    seq(
+        "switch", "(", expression, ")",
+        "{",
+        repeat(case_statement),
+        optional(default_statement),
+        "}",
+    )
+}
+
+rule case_statement {
+    seq("case", field(case, expression), ":", repeat(_statement))
+}
+
+rule default_statement {
+    seq("default", ":", repeat(_statement))
+}
+
+rule for_statement {
+    seq(
+        "for",
+        "(",
+        field(initial, optional(choice(expression, local_declaration))),
+        ";",
+        field(condition, optional(expression)),
+        ";",
+        field(increment, optional(expression)),
+        ")",
+        _statement,
+    )
+}
+
+rule foreach_statement {
+    seq(
+        "foreach",
+        "(",
+        optional(seq(field(index, identifier), ",")),
+        field(value, identifier),
+        "in",
+        field(collection, expression),
+        ")",
+        _statement,
+    )
+}
+
+rule break { seq("break", ";") }
+
+rule continue { seq("continue", ";") }
+
+rule return {
+    prec_right(0, seq("return", optional(choice(expression, table)), optional(";")))
+}
+
+rule yield {
+    seq("yield", optional(expression), choice(";", "\n"))
+}
+
+rule resume_expression { seq("resume", expression) }
+
+rule local_declaration {
+    prec_left(0, seq("local", _initz, optional(";")))
+}
+
+rule _initz {
+    prec_right(0, seq(
+        identifier,
+        optional(seq(choice("=", "<-"), choice(expression, table))),
+        optional(seq(",", _initz)),
+    ))
+}
+
+rule function_declaration {
+    seq(
+        "function",
+        identifier,
+        repeat(seq("::", identifier)),
+        "(",
+        optional(parameters),
+        ")",
+        _statement,
+    )
+}
+
+rule parameters { comma_sep1(parameter) }
+
+rule parameter {
+    choice(
+        seq(identifier, optional(seq("=", const_value))),
+        "...",
+    )
+}
+
+rule class_declaration {
+    seq(
+        "class",
+        identifier,
+        repeat(seq(".", identifier)),
+        optional(seq("extends", identifier)),
+        optional(attribute_declaration),
+        "{",
+        repeat(member_declaration),
+        "}",
+    )
+}
+
+rule member_declaration {
+    seq(
+        optional(attribute_declaration),
+        choice(
+            seq(optional("static"), identifier, "=", choice(expression, table), optional(";")),
+            seq("[", expression, "]", "=", expression, optional(";")),
+            function_declaration,
+            seq("constructor", "(", optional(parameters), ")", _statement),
+        ),
+    )
+}
+
+rule try_statement { seq("try", _statement, catch_statement) }
+
+rule catch_statement {
+    seq("catch", "(", identifier, ")", _statement)
+}
+
+rule throw_statement {
+    prec_right(0, seq("throw", expression, optional(";")))
+}
+
+rule const_declaration {
+    seq(
+        "const",
+        identifier,
+        "=",
+        const_value,
+        choice(";", "\n"),
+    )
+}
+
+rule const_value {
+    choice(
+        array, table, integer, float, string, verbatim_string,
+        char, bool, null, call_expression, identifier, global_variable,
+    )
+}
+
+rule enum_declaration {
+    prec_right(0, seq(
+        "enum",
+        identifier,
+        optional(attribute_declaration),
+        "{",
+        comma_sep1(seq(identifier, optional(seq("=", const_value)))),
+        "}",
+        optional(";"),
+    ))
+}
+
+rule attribute_declaration {
+    seq(
+        "</",
+        comma_sep1(seq(
+            field(left, identifier),
+            field(operator, "="),
+            field(right, const_value),
+        )),
+        "/>",
+    )
+}
+
+rule expression {
+    choice(
+        delete_expression, clone_expression, array,
+        assignment_expression, update_expression, resume_expression,
+        primary_expression,
+    )
+}
+
+rule primary_expression {
+    prec_right(0, choice(
+        unary_expression, binary_expression, ternary_expression,
+        anonymous_function, deref_expression, index_expression,
+        call_expression, lambda_expression, parenthesized_expression,
+        integer, float, string, verbatim_string, char, bool, null,
+        identifier, global_variable,
+    ))
+}
+
+rule unary_expression {
+    prec_left(PREC.UNARY, choice(
+        seq(
+            field(operator, choice("-", "~", "!", "typeof", "++", "--")),
+            field(operand, choice(expression, table)),
+            optional(";"),
+        ),
+        seq(
+            field(operand, expression),
+            field(operator, choice("++", "--")),
+            optional(";"),
+        ),
+    ))
+}
+
+rule binary_expression {
+    choice(
+        binop_l(PREC.ADDITIVE, "+"),
+        binop_l(PREC.ADDITIVE, "-"),
+        binop_l(PREC.MULTIPLICATIVE, "*"),
+        binop_l(PREC.MULTIPLICATIVE, "/"),
+        binop_l(PREC.MULTIPLICATIVE, "%"),
+        binop_l(PREC.LOGICAL_OR, "||"),
+        binop_l(PREC.LOGICAL_AND, "&&"),
+        binop_l(PREC.IN, "in"),
+        binop_l(PREC.INCLUSIVE_OR, "|"),
+        binop_l(PREC.EXCLUSIVE_OR, "^"),
+        binop_l(PREC.BITWISE_AND, "&"),
+        binop_l(PREC.EQUALITY, "=="),
+        binop_l(PREC.EQUALITY, "!="),
+        binop_l(PREC.COMPARISON, "<=>"),
+        binop_l(PREC.COMPARISON, ">"),
+        binop_l(PREC.COMPARISON, ">="),
+        binop_l(PREC.COMPARISON, "<="),
+        binop_l(PREC.COMPARISON, "<"),
+        binop_l(PREC.INSTANCEOF, "instanceof"),
+        binop_l(PREC.SHIFT, "<<"),
+        binop_l(PREC.SHIFT, ">>"),
+        binop_l(PREC.SHIFT, ">>>"),
+    )
+}
+
+rule ternary_expression {
+    prec_right(PREC.TERNARY, seq(
+        field(condition, expression),
+        "?",
+        field(consequence, choice(expression, table)),
+        ":",
+        field(alternative, choice(expression, table)),
+    ))
+}
+
+rule assignment_expression {
+    prec_right(PREC.ASSIGN, seq(
+        field(left, expression),
+        field(operator, "="),
+        field(right, choice(expression, table)),
+    ))
+}
+
+rule update_expression {
+    prec_right(PREC.ASSIGN, seq(
+        field(left, expression),
+        field(operator, choice("<-", "+=", "-=", "*=", "/=", "%=")),
+        field(right, choice(expression, table)),
+    ))
+}
+
+rule table {
+    prec_right(0, seq(
+        "{",
+        optional(table_slots),
+        "}",
+        optional(seq(".", expression)),
+    ))
+}
+
+rule table_slots {
+    seq(optional_comma_sep(table_slot), optional(","))
+}
+
+rule table_slot {
+    choice(
+        seq(identifier, "=", choice(expression, table)),
+        seq("[", expression, "]", "=", choice(expression, table)),
+        seq(expression, ":", choice(expression, table)),
+        function_declaration,
+    )
+}
+
+rule delete_expression {
+    seq("delete", expression, choice(";", "\n"))
+}
+
+rule var_statement {
+    seq("var", identifier, "=", expression)
+}
+
+rule deref_expression {
+    prec(PREC.MEMBER, choice(seq(expression, ".", identifier)))
+}
+
+rule index_expression {
+    prec_left(PREC.MEMBER, seq(
+        field(object, expression),
+        "[",
+        field(index, expression),
+        "]",
+    ))
+}
+
+rule call_expression {
+    prec_left(PREC.CALL, seq(
+        choice(field(function, expression), "rawcall"),
+        "(",
+        optional(call_args),
+        ")",
+    ))
+}
+
+rule call_args {
+    comma_sep1(choice(expression, table))
+}
+
+rule anonymous_function {
+    seq("function", "(", optional(parameters), ")", _statement)
+}
+
+rule lambda_expression {
+    seq("@", "(", optional(parameters), ")", expression)
+}
+
+rule parenthesized_expression {
+    prec(PREC.PAREN, seq("(", expression, ")"))
+}
+
+rule clone_expression {
+    prec_right(0, seq("clone", expression))
+}
+
+rule array {
+    prec_right(0, seq("[", comma_sep(expression), optional(","), "]"))
+}
+
+rule identifier { regexp(r"[a-zA-Z_][a-zA-Z0-9_]*") }
+
+rule global_variable { seq("::", identifier) }
+
+rule integer {
+    token(choice(
+        regexp(r"0"),
+        regexp(r"-?[1-9][0-9]*"),
+        regexp(r"0[xX][0-9A-Fa-f]+"),
+        regexp(r"'''[.]+'''"),
+        regexp(r"0[0-7]+"),
+    ))
+}
+
+rule float {
+    token(choice(
+        regexp(r"-?[0-9]+\.[0-9]+"),
+        regexp(r"[0-9]+\.[eE][+-]?[0-9]+"),
+    ))
+}
+
+rule string {
+    seq("\"", repeat(choice(string_content, _escape_sequence)), "\"")
+}
+
+rule string_content {
+    token_immediate(prec(1, regexp(r#"[^"\\]+"#)))
+}
+
+rule char {
+    choice(
+        seq("'", choice(escape_sequence, regexp(r"[^\\']")), "'"),
+        "'#'",
+    )
+}
+
+rule _escape_sequence {
+    choice(
+        prec(2, token_immediate(seq("\\", regexp(r#"[^abfnrtvxu'\"\\\?]"#)))),
+        prec(1, escape_sequence),
+    )
+}
+
+rule escape_sequence {
+    token_immediate(seq("\\", choice(
+        regexp(r"[^xu0-7]"),
+        regexp(r"[0-7]{1,3}"),
+        regexp(r"x[0-9a-fA-F]{2}"),
+        regexp(r"u[0-9a-fA-F]{4}"),
+        regexp(r"u\{[0-9a-fA-F]+\}"),
+    )))
+}
+
+rule bool { choice("true", "false") }
+
+rule null { "null" }
+
+rule comment {
+    token(choice(
+        seq("#", regexp(r".*")),
+        seq("//", regexp(r"(\\(.|\r?\n)|[^\\\n])*")),
+        seq("/*", regexp(r"[^*]*\*+([^/*][^*]*\*+)*"), "/"),
+    ))
+}
