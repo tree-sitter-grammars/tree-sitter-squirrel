@@ -1,0 +1,84 @@
+================================================================================
+Table as lambda body
+================================================================================
+
+local f = @(n) {name = n, x = 1};
+local g = @() {};
+
+--------------------------------------------------------------------------------
+
+(script
+  (local_declaration
+    (identifier)
+    (lambda_expression
+      (parameters
+        (parameter
+          (identifier)))
+      (table
+        (table_slots
+          (table_slot
+            (identifier)
+            (identifier))
+          (table_slot
+            (identifier)
+            (integer))))))
+  (local_declaration
+    (identifier)
+    (lambda_expression
+      (table))))
+
+================================================================================
+Table as foreach collection
+================================================================================
+
+foreach (k, v in {a = 1, b = 2}) print(k);
+
+--------------------------------------------------------------------------------
+
+(script
+  (foreach_statement
+    (identifier)
+    (identifier)
+    (table
+      (table_slots
+        (table_slot
+          (identifier)
+          (integer))
+        (table_slot
+          (identifier)
+          (integer))))
+    (call_expression
+      (identifier)
+      (call_args
+        (identifier)))))
+
+================================================================================
+Tables as array elements
+================================================================================
+
+local a = [1, {x = 1}, {text = "x", function get() { return 1; }}];
+
+--------------------------------------------------------------------------------
+
+(script
+  (local_declaration
+    (identifier)
+    (array
+      (integer)
+      (table
+        (table_slots
+          (table_slot
+            (identifier)
+            (integer))))
+      (table
+        (table_slots
+          (table_slot
+            (identifier)
+            (string
+              (string_content)))
+          (table_slot
+            (function_declaration
+              (identifier)
+              (block
+                (return
+                  (integer))))))))))

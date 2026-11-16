@@ -217,6 +217,10 @@
         {
           "type": "expression",
           "named": true
+        },
+        {
+          "type": "table",
+          "named": true
         }
       ]
     }
@@ -1368,6 +1372,10 @@
           {
             "type": "expression",
             "named": true
+          },
+          {
+            "type": "table",
+            "named": true
           }
         ]
       },
@@ -1750,6 +1758,10 @@
         {
           "type": "parameters",
           "named": true
+        },
+        {
+          "type": "table",
+          "named": true
         }
       ]
     }
@@ -1764,6 +1776,10 @@
       "types": [
         {
           "type": "expression",
+          "named": true
+        },
+        {
+          "type": "function_declaration",
           "named": true
         },
         {

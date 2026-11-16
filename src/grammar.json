@@ -526,8 +526,17 @@
           "type": "FIELD",
           "name": "collection",
           "content": {
-            "type": "SYMBOL",
-            "name": "expression"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "expression"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "table"
+              }
+            ]
           }
         },
         {
@@ -660,33 +669,51 @@
       ]
     },
     "local_declaration": {
-      "type": "PREC_LEFT",
-      "value": 0,
-      "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "STRING",
-            "value": "local"
-          },
-          {
-            "type": "SYMBOL",
-            "name": "_initz"
-          },
-          {
-            "type": "CHOICE",
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PREC_LEFT",
+          "value": 0,
+          "content": {
+            "type": "SEQ",
             "members": [
               {
                 "type": "STRING",
-                "value": ";"
+                "value": "local"
               },
               {
-                "type": "BLANK"
+                "type": "SYMBOL",
+                "name": "_initz"
+              },
+              {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": ";"
+                  },
+                  {
+                    "type": "BLANK"
+                  }
+                ]
               }
             ]
           }
-        ]
-      }
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "local"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "function_declaration"
+            }
+          ]
+        }
+      ]
     },
     "_initz": {
       "type": "PREC_RIGHT",
@@ -884,6 +911,18 @@
         {
           "type": "STRING",
           "value": "class"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "::"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         },
         {
           "type": "SYMBOL",
@@ -3319,8 +3358,17 @@
           "value": ")"
         },
         {
-          "type": "SYMBOL",
-          "name": "expression"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "table"
+            }
+          ]
         }
       ]
     },
@@ -3379,8 +3427,17 @@
                 "type": "SEQ",
                 "members": [
                   {
-                    "type": "SYMBOL",
-                    "name": "expression"
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "SYMBOL",
+                        "name": "expression"
+                      },
+                      {
+                        "type": "SYMBOL",
+                        "name": "table"
+                      }
+                    ]
                   },
                   {
                     "type": "REPEAT",
@@ -3392,8 +3449,17 @@
                           "value": ","
                         },
                         {
-                          "type": "SYMBOL",
-                          "name": "expression"
+                          "type": "CHOICE",
+                          "members": [
+                            {
+                              "type": "SYMBOL",
+                              "name": "expression"
+                            },
+                            {
+                              "type": "SYMBOL",
+                              "name": "table"
+                            }
+                          ]
                         }
                       ]
                     }
@@ -3481,6 +3547,10 @@
           {
             "type": "PATTERN",
             "value": "[0-9]+\\.[eE][+-]?[0-9]+"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+"
           }
         ]
       }

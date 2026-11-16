@@ -215,7 +215,7 @@ module.exports = grammar({
       optional(seq(field('index', $.identifier), ',')),
       field('value', $.identifier),
       'in',
-      field('collection', $.expression),
+      field('collection', choice($.expression, $.table)),
       ')',
       $._statement,
     ),
@@ -242,7 +242,10 @@ module.exports = grammar({
       $.expression,
     ),
 
-    local_declaration: $ => prec.left(seq('local', $._initz, optional(';'))),
+    local_declaration: $ => choice(
+      prec.left(seq('local', $._initz, optional(';'))),
+      seq('local', $.function_declaration),
+    ),
     _initz: $ => prec.right(seq(
       $.identifier,
       optional(seq(choice('=', '<-'), choice($.expression, $.table))),
@@ -270,6 +273,7 @@ module.exports = grammar({
 
     class_declaration: $ => seq(
       'class',
+      optional('::'),
       $.identifier,
       repeat(seq('.', $.identifier)),
       optional(seq('extends', $.identifier)),
@@ -530,7 +534,7 @@ module.exports = grammar({
       '(',
       optional($.parameters),
       ')',
-      $.expression,
+      choice($.expression, $.table),
     ),
 
     parenthesized_expression: $ => prec(PREC.PAREN, seq(
@@ -547,7 +551,7 @@ module.exports = grammar({
 
     array: $ => prec.right(seq(
       '[',
-      commaSep($.expression),
+      commaSep(choice($.expression, $.table)),
       optional(','),
       ']',
     )),
@@ -569,6 +573,7 @@ module.exports = grammar({
     float: _ => token(choice(
       /-?[0-9]+\.[0-9]+/,
       /[0-9]+\.[eE][+-]?[0-9]+/,
+      /[0-9]+(\.[0-9]+)?[eE][+-]?[0-9]+/,
     )),
 
     string: $ => seq(

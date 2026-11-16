@@ -1,0 +1,47 @@
+================================================================================
+Local function
+================================================================================
+
+local function f(a) { return a; }
+local function g(...) { return vargv; }
+
+--------------------------------------------------------------------------------
+
+(script
+  (local_declaration
+    (function_declaration
+      (identifier)
+      (parameters
+        (parameter
+          (identifier)))
+      (block
+        (return
+          (identifier)))))
+  (local_declaration
+    (function_declaration
+      (identifier)
+      (parameters
+        (parameter))
+      (block
+        (return
+          (identifier))))))
+
+================================================================================
+Class declared in root table
+================================================================================
+
+class ::Foo {
+  function bar() { return 1; }
+}
+
+--------------------------------------------------------------------------------
+
+(script
+  (class_declaration
+    (identifier)
+    (member_declaration
+      (function_declaration
+        (identifier)
+        (block
+          (return
+            (integer)))))))
